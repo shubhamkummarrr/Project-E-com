@@ -2,6 +2,7 @@ import { Box, Button, Card, CardContent, Grid, Typography } from "@mui/material"
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import { NavLink } from 'react-router-dom';
 
 const Home = () => {
   return <>
@@ -22,8 +23,10 @@ const Home = () => {
           <Typography variant="h5" sx={{ mb: 4, color: 'rgba(255,255,255,0.9)' }}>
             Your One-Stop Shop for All Things Tech
           </Typography>
-          <Button 
-            variant="contained" 
+          <Button
+            component={NavLink}
+            to="/products"
+            variant="contained"
             size="large"
             startIcon={<ShoppingCartIcon />}
             sx={{ 
@@ -37,7 +40,7 @@ const Home = () => {
               }
             }}
           >
-            Start Shopping
+            Add Products
           </Button>
         </Grid>
       </Grid>

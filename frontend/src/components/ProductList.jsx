@@ -1,46 +1,64 @@
 import { Link } from "react-router-dom";
-import { useGetProductsQuery, useDeleteProductMutation } from "../services/productApi";
+import { useGetProductsQuery, useDeleteProductMutation } from "../services/userAuthApi";
+import { Box, Typography, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper, IconButton } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function ProductList() {
   const { data: products = [], isLoading, isError } = useGetProductsQuery();
   const [deleteProduct, { isLoading: delLoading }] = useDeleteProductMutation();
 
-  if (isLoading) return <p>Loading…</p>;
-  if (isError) return <p>Failed to load products.</p>;
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this product?')) return;
+    try {
+      await deleteProduct(id).unwrap();
+    } catch (err) {
+      console.error('Delete failed', err);
+    }
+  };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Products</h2>
-      <Link to="/products/new">+ New Product</Link>
-      <table border="1" cellPadding="8" style={{ marginTop: 12 }}>
-        <thead>
-          <tr>
-            <th>ID</th><th>Name</th><th>Price</th><th>In Stock</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map(p => (
-            <tr key={p.id}>
-              <td>{p.id}</td>
-              <td>{p.name}</td>
-              <td>₹{p.price}</td>
-              <td>{p.in_stock ? "Yes" : "No"}</td>
-              <td>
-                <Link to={`/products/${p.id}/edit`}>Edit</Link>{" | "}
-                <button
-                  onClick={() => deleteProduct(p.id)}
-                  disabled={delLoading}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-          {products.length === 0 && (
-            <tr><td colSpan="5">No products yet.</td></tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h5">Products</Typography>
+        <Button component={Link} to="/products/new" variant="contained">+ New Product</Button>
+      </Box>
+
+      {isLoading && <Typography>Loading…</Typography>}
+      {isError && <Typography color="error">Failed to load products.</Typography>}
+
+      {!isLoading && !isError && (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>In Stock</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {products.length === 0 && (
+                <TableRow><TableCell colSpan={5}>No products yet.</TableCell></TableRow>
+              )}
+              {products.map(p => (
+                <TableRow key={p.id}>
+                  <TableCell>{p.id}</TableCell>
+                  <TableCell>{p.name}</TableCell>
+                  <TableCell>₹{p.price}</TableCell>
+                  <TableCell>{p.in_stock ? 'Yes' : 'No'}</TableCell>
+                  <TableCell align="right">
+                    <IconButton component={Link} to={`/products/${p.id}/edit`} size="small"><EditIcon fontSize="small" /></IconButton>
+                    <IconButton onClick={() => handleDelete(p.id)} size="small" disabled={delLoading}><DeleteIcon fontSize="small" /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
   );
 }

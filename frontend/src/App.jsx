@@ -10,11 +10,10 @@ import { useSelector } from "react-redux";
 import ProductList from "./components/ProductList";
 import ProductCreate from "./components/ProductCreate";
 import ProductEdit from "./components/ProductEdit";
-
-
+import ProtectedRoute from "./components/ProtectedRoute"; // ✅ new import
 
 function App() {
-  const { access_token } = useSelector(state => state.auth)
+  const { access_token } = useSelector((state) => state.auth);
   return (
     <>
       <BrowserRouter>
@@ -22,16 +21,38 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
 
-            <Route path="products" element={<ProductList />} />
+            {/* ✅ Only this route shows alert if not logged in */}
+            <Route
+              path="/products"
+              element={
+                <ProtectedRoute>
+                  <ProductList />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* These can stay open or protected later */}
             <Route path="products/new" element={<ProductCreate />} />
             <Route path="products/:id/edit" element={<ProductEdit />} />
 
             <Route path="contact" element={<Contact />} />
-            <Route path="login" element={!access_token ? <LoginReg /> : <Navigate to="/dashboard" />} />
+            <Route
+              path="login"
+              element={
+                !access_token ? <LoginReg /> : <Navigate to="/dashboard" />
+              }
+            />
             <Route path="sendpasswordresetemail" element={<SendPasswordResetEmail />} />
             <Route path="reset" element={<ResetPassword />} />
           </Route>
-          <Route path="/dashboard" element={access_token ? <Dashboard /> : <Navigate to="/login" />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              access_token ? <Dashboard /> : <Navigate to="/login" />
+            }
+          />
+
           <Route path="*" element={<h1>Error 404 Page not found !!</h1>} />
         </Routes>
       </BrowserRouter>
