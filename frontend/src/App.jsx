@@ -21,7 +21,6 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
 
-            {/* ✅ Only this route shows alert if not logged in */}
             <Route
               path="/products"
               element={
