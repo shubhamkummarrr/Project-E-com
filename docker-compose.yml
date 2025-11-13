@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  backend:
+    image: shubham12ss/backend:v1    # ⬅ Pull from Docker Hub
+    container_name: backend_container
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    image: shubham12ss/frontend:v1   # ⬅ Pull from Docker Hub
+    container_name: frontend_container
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16
+    container_name: postgres_container
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypass
+    ports:
+      - "5432:5432"
+
