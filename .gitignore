@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Django
+/static/
+media/
+*.log
+
+# Env files
+.env
+.env.local
+*.env
+
+# Virtual Env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+__pycache__/
+*.db
+*.pid
+
+# Migrations (optional but recommended for clean repo)
+# Uncomment if you want to regenerate migrations on server
+# */migrations/*
+# !*/migrations/__init__.py
+
+# OS files
+.DS_Store
+Thumbs.db
