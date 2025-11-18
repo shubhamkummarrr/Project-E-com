@@ -1,18 +1,13 @@
-# Step 1: Base Image
-FROM node:20
+FROM node:20-alpine
 
-# Step 2: Set Working Directory
 WORKDIR /app
 
-# Step 3: Copy package.json and install deps
 COPY package*.json ./
 RUN npm install
 
-# Step 4: Copy all files
 COPY . .
+RUN npm run build
 
-# Step 5: Run dev server
-CMD ["npm", "run", "dev"]
-
-# Expose port
+# Serve build using vite preview
 EXPOSE 5173
+CMD ["npm", "run", "preview"]
