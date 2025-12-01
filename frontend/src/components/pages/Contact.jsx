@@ -34,7 +34,7 @@ const Contact = () => {
             Contact Us
           </Typography>
           <Typography variant="body1" sx={{ mb: 4, textAlign: 'center', color: 'text.secondary' }}>
-            Have a questionss or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            Have a questionsss or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
           </Typography>
           
           <Box component="form" onSubmit={handleSubmit} noValidate>
