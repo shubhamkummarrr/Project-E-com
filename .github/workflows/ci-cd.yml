@@ -72,6 +72,13 @@ jobs:
             set -e
 
             cd Project-E-com
+
+            echo "Resetting local changes..."
+            git fetch --all
+            git reset --hard origin/main
+            git clean -fd
+
+            echo "Pulling latest code..."
             git pull
 
             echo "Pulling latest Docker images..."
