@@ -71,7 +71,7 @@ jobs:
           script: |
             set -e
 
-            cd ecommerce
+            cd Project-E-com
             git pull
 
             echo "Pulling latest Docker images..."
