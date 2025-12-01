@@ -1,0 +1,93 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --------------------------
+      # Setup Python
+      # --------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+
+      - name: Backend checks
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          python -m py_compile $(git ls-files '*.py')
+
+      # --------------------------
+      # Setup Node
+      # --------------------------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Frontend build test
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+  # ==================================================
+  # DEPLOY JOB
+  # ==================================================
+  deploy:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            set -e
+
+            cd ecommerce
+            git pull
+
+            echo "Pulling latest Docker images..."
+            docker-compose pull
+
+            echo "Stopping old containers..."
+            docker-compose down
+
+            echo "Rebuilding & starting services..."
+            docker-compose up -d --build
+
+            echo "Running DB migrations..."
+            docker-compose exec backend python manage.py migrate --noinput
+
+            echo "Collecting static files..."
+            docker-compose exec backend python manage.py collectstatic --noinput
+
+            echo "Cleaning unused Docker resources safely..."
+            docker system prune -f
