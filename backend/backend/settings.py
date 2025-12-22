@@ -16,7 +16,7 @@ ENV = os.getenv("ENV", "local")   # local / production
 
 if ENV == "production":
     DEBUG = False
-    ALLOWED_HOSTS = ["*"]
+    ALLOWED_HOSTS = ["16.170.39.24"]
 else:
     DEBUG = True
     ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
@@ -155,14 +155,6 @@ else:
     # LOCAL EMAIL LOGS IN TERMINAL
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-
-# ============================
-# CORS SETTINGS
-# ============================
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",   # React frontend
-]
 
 
 # ============================
