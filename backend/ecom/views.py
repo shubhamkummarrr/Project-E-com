@@ -7,8 +7,16 @@ from ecom.renderers import UserRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, filters
-from .models import Product
-from .serializers import ProductSerializer
+from .models import *
+from .serializers import *
+import pandas as pd
+from rest_framework.decorators import api_view
+from django.conf import settings
+import os
+import numpy as np
+
+
+
 
 
 # Generate Token Manually
@@ -79,3 +87,90 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields    = ['name','description','slug']
     ordering_fields  = ['price','created_at']
     ordering         = ['-created_at']
+
+
+CSV_PATH = os.path.join(
+    settings.BASE_DIR,
+    "ecom",
+    "amazon.csv"
+)
+
+@api_view(["GET"])
+def ProductCard(request):
+    # 1️⃣ Load CSV
+    df = pd.read_csv(CSV_PATH)
+    
+    # 1️⃣ Remove any WEBP routing path (T1, T2, T3, etc.)
+    df['img_link'] = df['img_link'].str.replace(
+        r"/images/W/WEBP_[^/]+",
+        "",
+        regex=True
+    )
+
+    # 2️⃣ Remove FMwebp marker if present
+    df['img_link'] = df['img_link'].str.replace(
+        r"_FMwebp_",
+        "_",
+        regex=True
+    )
+
+    # 3️⃣ Ensure proper .jpg ending
+    df['img_link'] = df['img_link'].str.replace(
+        r"(?<!\.jpg)$",
+        ".jpg",
+        regex=True
+    )
+
+
+    # 3️⃣ Clean rating_count
+    df['rating_count_clean'] = (
+        pd.to_numeric(
+            df['rating_count']
+            .astype(str)
+            .str.replace(",", "", regex=False),
+            errors='coerce'
+        )
+        .fillna(0)
+        .astype(int)
+    )
+
+    # 4️⃣ Clean prices
+    df['discounted_price_clean'] = (
+        pd.to_numeric(
+            df['discounted_price']
+            .astype(str)
+            .str.replace("₹", "", regex=False)
+            .str.replace(",", "", regex=False),
+            errors='coerce'
+        )
+        .fillna(0)
+    )
+    
+    df['categories'] = df['category'].str.split("|").apply(lambda x:x[0]).apply(lambda x:x.replace("&"," & "))
+
+    # 5️⃣ TOP PRODUCTS (rating_count > 200k)
+    top_products = (
+        df[df['rating_count_clean'] > 200000]
+        .sort_values(by=["rating", "rating_count_clean"], ascending=False)
+        .head(20)
+    )
+
+    # 6️⃣ CATEGORY SECTIONS
+    office_products = df[df['categories'] == "OfficeProducts"].head(20)
+    home_kitchen = df[df['categories'] == "Home & Kitchen"].head(50)
+    computers_accessories = df[df['categories'] == "Computers & Accessories"].head(50)
+    electronics_products = df[df['categories'] == "Electronics"].head(50)
+
+    # 7️⃣ JSON-safe (NaN → null)
+    def safe(df_section):
+        return df_section.replace({np.nan: None}).to_dict(orient="records")
+
+    # 8️⃣ Final response
+    return Response({
+        "top_products": safe(top_products),
+        "office_products": safe(office_products),
+        "home_kitchen": safe(home_kitchen),
+        "computers_accessories": safe(computers_accessories),
+        "electronics_products": safe(electronics_products),
+    })
+

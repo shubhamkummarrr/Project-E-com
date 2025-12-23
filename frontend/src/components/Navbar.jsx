@@ -6,7 +6,9 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 const Navbar = () => {
   const { access_token } = getToken()
   return (
-    <AppBar position="static" sx={{
+    <AppBar position="sticky" sx={{
+      top: 0,
+      zIndex: (theme) => theme.zIndex.appBar + 10,
       backgroundColor: "#ffffffff",
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
     }}>
