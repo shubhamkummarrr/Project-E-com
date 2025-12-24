@@ -1,6 +1,7 @@
 from django.contrib import admin
 from ecom.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import *
 
 class UserModelAdmin(BaseUserAdmin):
   # The fields to be used in displaying the User model.

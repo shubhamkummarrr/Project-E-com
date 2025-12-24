@@ -11,6 +11,7 @@ import ProductList from "./components/ProductList";
 import ProductCreate from "./components/ProductCreate";
 import ProductEdit from "./components/ProductEdit";
 import ProtectedRoute from "./components/ProtectedRoute"; // ✅ new import
+import ProductPage from "./components/ProductPage";
 
 function App() {
   const { access_token } = useSelector((state) => state.auth);
@@ -32,13 +33,14 @@ function App() {
 
             {/* These can stay open or protected later */}
             <Route path="products/new" element={<ProductCreate />} />
+            <Route path="productpage/:id" element={<ProductPage />} />
             <Route path="products/:id/edit" element={<ProductEdit />} />
 
             <Route path="contact" element={<Contact />} />
             <Route
               path="login"
               element={
-                !access_token ? <LoginReg /> : <Navigate to="/dashboard" />
+                access_token ? <Navigate to="/dashboard" /> : <LoginReg />
               }
             />
             <Route path="sendpasswordresetemail" element={<SendPasswordResetEmail />} />

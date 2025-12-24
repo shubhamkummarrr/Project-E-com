@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to EC2
+      - name: Deploy to EC2 (Incremental)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_IP }}
@@ -73,37 +73,44 @@ jobs:
 
             cd Project-E-com
 
-            echo "Resetting local changes..."
-            git fetch --all
-            git reset --hard origin/main
-            git clean -fd
+            echo "Fetching latest code..."
+            git fetch origin main
+
+            # Get list of changed files
+            CHANGED_FILES=$(git diff --name-only HEAD origin/main)
+
+            echo "Changed files:"
+            echo "$CHANGED_FILES"
 
             echo "Pulling latest code..."
-            git pull
+            git pull origin main
 
-            echo "Pulling latest Docker images..."
-            docker-compose pull
+            # --------------------------
+            # Backend changes
+            # --------------------------
+            if echo "$CHANGED_FILES" | grep -q "^backend/"; then
+              echo "Backend changes detected"
 
-            echo "Stopping old containers..."
-            docker-compose down --remove-orphans
+              docker-compose build backend
+              docker-compose up -d backend
 
-            echo "Removing old images..."
-            docker image prune -a -f
+              echo "Running migrations..."
+              docker-compose exec backend python manage.py migrate --noinput
+              docker-compose exec backend python manage.py collectstatic --noinput
+            else
+              echo "No backend changes"
+            fi
 
-            echo "Force rebuilding frontend..."
-            docker-compose build frontend --no-cache
+            # --------------------------
+            # Frontend changes
+            # --------------------------
+            if echo "$CHANGED_FILES" | grep -q "^frontend/"; then
+              echo "Frontend changes detected"
 
-            echo "Rebuilding backend..."
-            docker-compose build backend --no-cache
+              docker-compose build frontend
+              docker-compose up -d frontend
+            else
+              echo "No frontend changes"
+            fi
 
-            echo "Starting services (fresh build)..."
-            docker-compose up -d --force-recreate
-
-            echo "Running DB migrations..."
-            docker-compose exec backend python manage.py migrate --noinput
-
-            echo "Collecting static files..."
-            docker-compose exec backend python manage.py collectstatic --noinput
-
-            echo "Cleaning unused Docker resources safely..."
-            docker system prune -f
+            echo "Deployment completed successfully"

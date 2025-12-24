@@ -14,6 +14,8 @@ from rest_framework.decorators import api_view
 from django.conf import settings
 import os
 import numpy as np
+from ecom.recommender.recommender import recommend_products
+
 
 
 
@@ -173,4 +175,69 @@ def ProductCard(request):
         "computers_accessories": safe(computers_accessories),
         "electronics_products": safe(electronics_products),
     })
+
+
+@api_view(["GET"])
+def get_product_by_id(request, product_id):
+    df = pd.read_csv(CSV_PATH)
+    
+    df['img_link'] = df['img_link'].str.replace(
+        r"/images/W/WEBP_[^/]+",
+        "",
+        regex=True
+    )
+
+    # 2️⃣ Remove FMwebp marker if present
+    df['img_link'] = df['img_link'].str.replace(
+        r"_FMwebp_",
+        "_",
+        regex=True
+    )
+
+    # 3️⃣ Ensure proper .jpg ending
+    df['img_link'] = df['img_link'].str.replace(
+        r"(?<!\.jpg)$",
+        ".jpg",
+        regex=True
+    )
+
+
+    product_df = df[df["product_id"] == product_id]
+
+    if product_df.empty:
+        return Response({"error": "Product not found"}, status=404)
+
+    product = product_df.iloc[0].to_dict()
+
+    return Response(product)
+
+@api_view(["GET"])
+def product_recommendations(request, product_id):
+
+    top_n = int(request.GET.get("top_n", 20))
+    data = recommend_products(product_id, top_n)
+    return Response(data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

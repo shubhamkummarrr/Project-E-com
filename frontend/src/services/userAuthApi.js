@@ -121,6 +121,18 @@ export const userAuthApi = createApi({
         method: "GET",
       }),
     }),
+    ProductPage: builder.query({
+      query: (product_id) => ({
+        url: `user/product/${product_id}/`,
+        method: "GET",
+      }),
+    }),
+    RecommendProduct: builder.query({
+      query: (product_id) => ({
+        url: `user/recommend/${product_id}/`,
+        method: "GET",
+      }),
+    }),
 
     // ---------------------- PRODUCT CRUD ----------------------
     getProducts: builder.query({
@@ -183,6 +195,8 @@ export const {
   useSendPasswordResetEmailMutation,
   useResetPasswordMutation,
   useProductCardQuery,
+  useProductPageQuery,
+  useRecommendProductQuery,
   // Product
   useGetProductsQuery,
   useGetProductQuery,

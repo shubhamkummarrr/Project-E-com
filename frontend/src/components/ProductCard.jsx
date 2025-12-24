@@ -26,7 +26,7 @@ const ProductCard = ({ product = {}, onAddToCart, onView, onEdit }) => {
       fontFamily: 'Inter, Roboto, Arial, sans-serif'
     },
     imgWrap: { height: 200, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-    badge: { position: 'absolute', left: 10, top: 10, background: '#ef4444', color: '#fff', padding: '4px 8px', borderRadius: 6, fontSize: 12 },
+    badge: { position: 'absolute', left: 10, top: 10, background: '#a544efff', color: '#fff', padding: '4px 8px', borderRadius: 6, fontSize: 12 },
     img: { maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' },
     body: { padding: 14, display: 'flex', flexDirection: 'column', gap: 8 },
     title: {

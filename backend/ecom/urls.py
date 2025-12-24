@@ -12,6 +12,8 @@ urlpatterns = [
     path('reset-password/<uid>/<token>/', UserPasswordResetView.as_view(), name='reset-password'),
     path('refresh/', TokenRefreshView.as_view(), name='refresh'),
     path("productcard/", ProductCard, name="products"),
+    path("product/<str:product_id>/", get_product_by_id, name="product-detail"),
+    path("recommend/<str:product_id>/", product_recommendations),
 
 ]
 
