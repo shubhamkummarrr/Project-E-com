@@ -83,6 +83,7 @@ jobs:
             echo "$CHANGED_FILES"
 
             echo "Pulling latest code..."
+            git checkout .
             git pull origin main
 
             # --------------------------
