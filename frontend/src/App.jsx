@@ -3,7 +3,7 @@ import LoginReg from "./components/pages/auth/LoginReg";
 import ResetPassword from "./components/pages/auth/ResetPassword";
 import SendPasswordResetEmail from "./components/pages/auth/SendPasswordResetEmail";
 import Contact from "./components/pages/Contact";
-import Dashboard from "./components/pages/Dashboard";
+import Profile from "./components/pages/Profile";
 import Home from "./components/pages/Home";
 import Layout from "./components/pages/Layout";
 import { useSelector } from "react-redux";
@@ -40,7 +40,7 @@ function App() {
             <Route
               path="login"
               element={
-                access_token ? <Navigate to="/dashboard" /> : <LoginReg />
+                access_token ? <Navigate to="/Profile" /> : <LoginReg />
               }
             />
             <Route path="sendpasswordresetemail" element={<SendPasswordResetEmail />} />
@@ -48,9 +48,9 @@ function App() {
           </Route>
 
           <Route
-            path="/dashboard"
+            path="/Profile"
             element={
-              access_token ? <Dashboard /> : <Navigate to="/login" />
+              access_token ? <Profile /> : <Navigate to="/login" />
             }
           />
 

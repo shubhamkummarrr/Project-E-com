@@ -1,10 +1,19 @@
+import React, { useState } from 'react';
 import { AppBar, Box, Toolbar, Typography, Button, Container } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import { getToken } from '../services/LocalStorageService';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import { useDispatch, useSelector } from 'react-redux';
+import { removeFromCart } from '../features/cartSlice';
+
+
 
 const Navbar = () => {
   const { access_token } = getToken()
+  const [cartOpen, setCartOpen] = useState(false)
+  const cartItems = useSelector((state) => state.cart.items);
+  const dispatch = useDispatch();
+
   return (
     <AppBar position="sticky" sx={{
       top: 0,
@@ -89,7 +98,7 @@ const Navbar = () => {
             {access_token ?
               <Button
                 component={NavLink}
-                to='/dashboard'
+                to='/Profile'
                 style={({ isActive }) => ({
                   backgroundColor: isActive ? 'rgba(0, 0, 0, 0.04)' : '',
                   color: isActive ? 'primary.main' : 'text.primary'
@@ -104,7 +113,7 @@ const Navbar = () => {
                   }
                 }}
               >
-                Dashboard
+                Profile
               </Button>
               :
               <Button
@@ -125,6 +134,82 @@ const Navbar = () => {
                 Login/Registration
               </Button>
             }
+
+            <Button onClick={() => setCartOpen(o => !o)} style={{ position: "relative" }}>
+              <img src="/public/grocery.gif" style={{ height: "40px" }} />
+              <span style={{
+                position: "absolute",
+                top: -5,
+                right: -6,
+                background: "#6b3deaff",
+                color: "white",
+                borderRadius: "50%",
+                padding: "4px 7px",
+                fontSize: "12px",
+                fontWeight: "bold"
+              }}>{cartItems.reduce((sum, it) => sum + (it.qty || 1), 0)}</span>
+            </Button>
+
+            {cartOpen && (
+              <div style={{
+                position: 'fixed',
+                top: 72,
+                right: 20,
+                width: 340,
+                maxWidth: '90vw',
+                background: '#fff',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                borderRadius: 8,
+                zIndex: 1400,
+                padding: 12
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <strong>Your Cart</strong>
+                  <Button onClick={() => setCartOpen(false)} size="small">Close</Button>
+                </div>
+
+                <div>
+                  {cartItems.length === 0 && (
+                    <div style={{ padding: 12, color: '#666' }}>Your cart is empty</div>
+                  )}
+
+                  {cartItems.map(p => (
+                    <div key={p.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 0',color:"black" , borderBottom: '1px solid #eee' }}>
+                      <img
+                        src={p.img_link}
+                        alt={p.product_name}
+                        style={{
+                          width: 56,
+                          height: 56,
+                          objectFit: "contain",
+                          borderRadius: 6,
+                          background: "#f5f5f5",
+                          padding: 4
+                        }}
+                      />
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>
+                          if {p.product_name.length > 30 ? p.product_name.substring(0, 30) + '...' : p.product_name}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#666' }}>₹{(Number(p.discounted_price) || 0).toFixed(2)}</div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>x{p.qty || 1}</div>
+                        <Button size="small" variant="outlined">Add</Button>
+                        <Button size="small" variant="outlined" style={{color:"red", border:"1px solid red"}} onClick={() => dispatch(removeFromCart(p.id))}>-</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color:"black"}}>
+                  <div style={{ fontWeight: 700 }}>Subtotal</div>
+                  <div style={{ fontWeight: 700 }}>{cartItems.reduce((s, p) => s + (Number(p.discounted_price) || 0) * (p.qty || 1), 0).toFixed(2)}</div>
+                </div>
+              </div>
+            )}
+
           </Box>
         </Toolbar>
       </Container>

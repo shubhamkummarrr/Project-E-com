@@ -4,11 +4,15 @@ import {
     useProductPageQuery,
     useRecommendProductQuery,
 } from "../services/userAuthApi";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../features/cartSlice";
+
 
 const ProductPage = () => {
     const { id } = useParams(); // this is product_id
     const navigate = useNavigate();
 
+    const dispatch = useDispatch();
     const { data: fetchedProduct, isLoading } = useProductPageQuery(id);
     const { data: recommendedProducts } = useRecommendProductQuery(id);
 
@@ -32,26 +36,13 @@ const ProductPage = () => {
     const truncate = (text = "", max = 45) =>
         text.length > max ? text.slice(0, max) + "..." : text;
 
-    const fallback = {
-        product_id: "fallback",
-        product_name:
-            "Wayona Nylon Braided USB to Lightning Fast Charging and Data Sync Cable",
-        img_link:
-            "https://m.media-amazon.com/images/I/51UsScvHQNL._SX300_SY300_QL70_.jpg",
-        discounted_price: "₹399",
-        actual_price: "₹1,099",
-        discount_percentage: "64%",
-        rating: "4.2",
-        rating_count: 24269,
-        categories: "Computers & Accessories",
-        about_product:
-            "Fast Charging | Durable Cable | High Compatibility | 12 Months Warranty",
-        review_title: ["Good", "Worth it"],
-        review_content: ["Nice product", "Value for money"],
-    };
+    // placeholder image for recommendations when an item lacks an image
+    const PLACEHOLDER_IMG = "https://via.placeholder.com/300x300?text=No+Image";
 
+    console.log(recommendedProducts)
 
-    const product = fetchedProduct || fallback;
+    // product is only the fetched product — do not use any default/fallback product
+    const product = fetchedProduct;
 
     const recommendations = Array.isArray(recommendedProducts)
         ? recommendedProducts
@@ -60,10 +51,10 @@ const ProductPage = () => {
                 product_id: r.product_id,
                 product_name:
                     r.product_name || r.product_name_clean || "Untitled Product",
-                img_link: r.img_link || fallback.img_link,
+                img_link: r.img_link || PLACEHOLDER_IMG,
                 discounted_price:
-                    r.discounted_price_clean
-                        ? `₹${r.discounted_price_clean}`
+                    r.discounted_price
+                        ? `${r.discounted_price}`
                         : "N/A",
                 actual_price: r.actual_price || "",
                 discount_percentage: r.discount_percentage || "",
@@ -71,13 +62,38 @@ const ProductPage = () => {
             }))
         : [];
 
-    const reviewTitles = Array.isArray(product.review_title)
-        ? product.review_title
-        : String(product.review_title || "").split("|");
+    const reviewTitles = product
+        ? (Array.isArray(product.review_title)
+            ? product.review_title
+            : String(product.review_title || "").split("|"))
+        : [];
 
-    const reviewContents = Array.isArray(product.review_content)
-        ? product.review_content
-        : String(product.review_content || "").split("|");
+    const reviewContents = product
+        ? (Array.isArray(product.review_content)
+            ? product.review_content
+            : String(product.review_content || "").split("|"))
+        : [];
+
+    // Simple loading skeleton to show while product is being fetched
+    const LoadingSkeleton = () => (
+        <div style={{ padding: 40 }}>
+            <div style={{ display: "flex", gap: 40, marginBottom: 24 }}>
+                <div style={{ width: 300, height: 300, background: "#e5e7eb", borderRadius: 8 }} />
+                <div style={{ flex: 1 }}>
+                    <div style={{ width: "60%", height: 28, background: "#e5e7eb", marginBottom: 12, borderRadius: 6 }} />
+                    <div style={{ width: "30%", height: 18, background: "#e5e7eb", marginBottom: 8, borderRadius: 6 }} />
+                    <div style={{ width: "40%", height: 22, background: "#e5e7eb", marginBottom: 18, borderRadius: 6 }} />
+                    <div style={{ width: "50%", height: 44, background: "#e5e7eb", borderRadius: 8 }} />
+                </div>
+            </div>
+
+            <div style={{ background: "#fff", padding: 20, borderRadius: 12 }}>
+                <div style={{ width: "100%", height: 16, background: "#e5e7eb", marginBottom: 8, borderRadius: 6 }} />
+                <div style={{ width: "100%", height: 16, background: "#e5e7eb", marginBottom: 8, borderRadius: 6 }} />
+                <div style={{ width: "100%", height: 16, background: "#e5e7eb", marginBottom: 8, borderRadius: 6 }} />
+            </div>
+        </div>
+    );
 
     const styles = {
         page: {
@@ -256,144 +272,150 @@ const ProductPage = () => {
 
     return (
         <div style={styles.page}>
-            {/* PRODUCT TOP */}
+            {(isLoading || !product) ? (
+                <LoadingSkeleton />
+            ) : (
+                <>
+                    <div style={styles.topSection}>
+                        <img src={product.img_link} alt="" style={styles.image} />
 
-            <div>
-                {isLoading ? (
-                    <div>Loading...</div>
-                ) : (
-                    <>
-                        {/* FULL PRODUCT PAGE JSX HERE */}
-                    </>
-                )}
-            </div>
+                        <div style={styles.info}>
+                            <h2>{product.product_name}</h2>
 
-            <div style={styles.topSection}>
-                <img src={product.img_link} alt="" style={styles.image} />
+                            <div style={styles.rating}>
+                                ⭐ {product.rating} (
+                                {(product.rating_count || 0).toLocaleString()} ratings)
+                            </div>
 
-                <div style={styles.info}>
-                    <h2>{product.product_name}</h2>
+                            <div style={styles.priceBox}>
+                                <span style={styles.discounted}>
+                                    {product.discounted_price}
+                                </span>
+                                <span style={styles.actual}>{product.actual_price}</span>
+                                <span style={styles.off}>
+                                    {product.discount_percentage} OFF
+                                </span>
+                            </div>
 
-                    <div style={styles.rating}>
-                        ⭐ {product.rating} (
-                        {(product.rating_count || 0).toLocaleString()} ratings)
+                            <p style={styles.category}>{product.categories}</p>
+
+                            <button onClick={() => {
+                                const payload = {
+                                    id: product.product_id,
+                                    product_name: product.product_name,
+                                    img_link: product.img_link || PLACEHOLDER_IMG,
+                                    // ensure price is numeric
+                                    discounted_price: Number(String(product.discounted_price).replace(/[^0-9.]/g, '')) || 0,
+                                }
+                                dispatch(addToCart(payload))
+                            }} style={styles.cartBtn}>Add to Cart</button>
+                        </div>
                     </div>
 
-                    <div style={styles.priceBox}>
-                        <span style={styles.discounted}>
-                            {product.discounted_price}
-                        </span>
-                        <span style={styles.actual}>{product.actual_price}</span>
-                        <span style={styles.off}>
-                            {product.discount_percentage} OFF
-                        </span>
+                    {/* ABOUT */}
+                    <div style={styles.section}>
+                        <h3>About this product</h3>
+                        <ul>
+                            {String(product.about_product)
+                                .split("|")
+                                .map((item, i) => (
+                                    <li key={i}>{item}</li>
+                                ))}
+                        </ul>
                     </div>
 
-                    <p style={styles.category}>{product.categories}</p>
-
-                    <button style={styles.cartBtn}>Add to Cart</button>
-                </div>
-            </div>
-
-            {/* ABOUT */}
-            <div style={styles.section}>
-                <h3>About this product</h3>
-                <ul>
-                    {String(product.about_product)
-                        .split("|")
-                        .map((item, i) => (
-                            <li key={i}>{item}</li>
-                        ))}
-                </ul>
-            </div>
-
-            {/* REVIEWS */}
-            <div style={styles.section}>
-                <h3>Customer Reviews</h3>
-                {reviewTitles.map((title, index) => (
-                    <div key={index} style={styles.review}>
-                        <strong>{title}</strong>
-                        <p>{reviewContents[index] || ""}</p>
-                    </div>
-                ))}
-            </div>
-
-            {/* RECOMMENDATIONS */}
-            <div style={styles.section}>
-                <h3>You may also like</h3>
-
-                <div style={styles.recommendOuter} ref={carouselRef}>
-                    <div
-                        ref={trackRef}
-                        style={{ ...styles.recommendTrack, transform: trackTransform }}
-                    >
-                        {recommendations.map((item, idx) => (
-                            <div
-                                key={item.product_id}
-                                style={styles.card}
-                                onClick={() => navigate(`/productpage/${item.product_id}`)}
-                            >
-                                <img
-                                    src={item.img_link}
-                                    alt={item.product_name}
-                                    style={{
-                                        width: "100%",
-                                        height: 120,
-                                        objectFit: "contain",
-                                    }}
-                                />
-
-                                {item.rating && (
-                                    <div style={styles.ratingSmall}>
-                                        ⭐ {item.rating}
-                                    </div>
-                                )}
-
-                                <p style={styles.cardTitle}>
-                                    {truncate(item.product_name)}
-                                </p>
-
-                                <div style={styles.cardPriceRow}>
-                                    <strong>{item.discounted_price}</strong>
-                                    {item.actual_price && (
-                                        <span style={styles.cardActual}>
-                                            {item.actual_price}
-                                        </span>
-                                    )}
-                                </div>
-
-                                {item.discount_percentage && (
-                                    <div style={styles.cardOff}>
-                                        {item.discount_percentage} OFF
-                                    </div>
-                                )}
+                    {/* REVIEWS */}
+                    <div style={styles.section}>
+                        <h3>Customer Reviews</h3>
+                        {reviewTitles.map((title, index) => (
+                            <div key={index} style={styles.review}>
+                                <strong>{title}</strong>
+                                <p>{reviewContents[index] || ""}</p>
                             </div>
                         ))}
                     </div>
 
-                    {recommendations.length > itemsPerView && (
-                        <>
-                            {index > 0 && (
-                                <button
-                                    style={{ ...styles.carouselBtn, ...styles.prevBtn, border: "2px solid black" }}
-                                    onClick={handlePrev}
-                                >
-                                    ‹
-                                </button>
-                            )}
+                    {/* RECOMMENDATIONS */}
+                    <div style={styles.section}>
+                        <h3>You may also like</h3>
 
-                            {index < maxIndex && (
-                                <button
-                                    style={{ ...styles.carouselBtn, ...styles.nextBtn, border: "2px solid black" }}
-                                    onClick={handleNext}
-                                >
-                                    ›
-                                </button>
+                        <div style={styles.recommendOuter} ref={carouselRef}>
+                            <div
+                                ref={trackRef}
+                                style={{ ...styles.recommendTrack, transform: trackTransform }}
+                            >
+                                {recommendations.map((item, idx) => (
+                                    <div
+                                        key={item.product_id}
+                                        style={styles.card}
+                                        onClick={() => {
+                                            navigate(`/productpage/${item.product_id}`);
+                                        }}
+
+                                    >
+                                        <img
+                                            src={item.img_link}
+                                            alt={item.product_name}
+                                            style={{
+                                                width: "100%",
+                                                height: 120,
+                                                objectFit: "contain",
+                                            }}
+                                        />
+
+                                        {item.rating && (
+                                            <div style={styles.ratingSmall}>
+                                                ⭐ {item.rating}
+                                            </div>
+                                        )}
+
+                                        <p style={styles.cardTitle}>
+                                            {truncate(item.product_name)}
+                                        </p>
+
+                                        <div style={styles.cardPriceRow}>
+                                            <strong>{item.discounted_price}</strong>
+                                            {item.actual_price && (
+                                                <span style={styles.cardActual}>
+                                                    {item.actual_price}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {item.discount_percentage && (
+                                            <div style={styles.cardOff}>
+                                                {item.discount_percentage} OFF
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {recommendations.length > itemsPerView && (
+                                <>
+                                    {index > 0 && (
+                                        <button
+                                            style={{ ...styles.carouselBtn, ...styles.prevBtn, border: "2px solid black" }}
+                                            onClick={handlePrev}
+                                        >
+                                            ‹
+                                        </button>
+                                    )}
+
+                                    {index < maxIndex && (
+                                        <button
+                                            style={{ ...styles.carouselBtn, ...styles.nextBtn, border: "2px solid black" }}
+                                            onClick={handleNext}
+                                        >
+                                            ›
+                                        </button>
+                                    )}
+                                </>
                             )}
-                        </>
-                    )}
-                </div>
-            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
