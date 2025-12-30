@@ -4,6 +4,7 @@ import authReducer from "../features/authSlice";
 import userReducer from "../features/userSlice";
 import { userAuthApi } from "../services/userAuthApi";
 import cartReducer from "../features/cartSlice";
+import addressReducer from "../features/addressSlice";
 
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     auth: authReducer,
     user: userReducer,
     cart: cartReducer,
+    address: addressReducer,
     [userAuthApi.reducerPath]: userAuthApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

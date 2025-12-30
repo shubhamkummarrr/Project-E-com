@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "../ProductCard";
 import { useGetProductsQuery, useUserGetDetailsQuery } from "../../services/userAuthApi";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart } from "../../features/cartSlice";
-import { getToken } from "../../services/LocalStorageService";
 import { useNavigate } from "react-router-dom";
+import { setAddress } from "../../features/addressSlice";
 
 
 const BuyProducts = () => {
@@ -21,6 +21,11 @@ const BuyProducts = () => {
         WestBengal: 0.05,
         Default: 0.18,
     };
+
+
+
+    const address = useSelector((state) => state.address.address);
+
 
     const navigate = useNavigate();
 
@@ -41,10 +46,19 @@ const BuyProducts = () => {
     const taxAmount = +(subtotal * taxRate).toFixed(2);
     const total = +(subtotal + taxAmount).toFixed(2);
 
-    const { access_token } = getToken();
+    const { access_token } = useSelector((state) => state.auth);
 
-    const { data: userDetails = null } = useUserGetDetailsQuery(access_token);
+    const { data: userDetails = null, isSuccess } = useUserGetDetailsQuery(access_token);
+
+    useEffect(() => {
+        if (isSuccess && Array.isArray(userDetails) && userDetails.length > 0) {
+            // ✅ take first address (default)
+            dispatch(setAddress(userDetails[0]));
+        }
+    }, [isSuccess, userDetails, dispatch]);
+
     console.log(userDetails)
+    console.log(address)
 
 
     const handleBuy = () => {
@@ -62,7 +76,12 @@ const BuyProducts = () => {
             return;
         }
 
-        if (!userDetails || userDetails.length === 0) {
+        if (
+            !userDetails ||
+            userDetails.length === 0 ||
+            !address ||
+            !address.user_full_name
+        ) {
             alert("Please fill in your user details before buying.");
             navigate("/userdetails");
             return;
@@ -84,6 +103,7 @@ const BuyProducts = () => {
         setShowQR(false);
         setOrderPlaced(true);
         dispatch(clearCart());
+
     };
 
     return (
@@ -162,7 +182,7 @@ const BuyProducts = () => {
                         <div style={{ width: 220, height: 220, display: "flex", alignItems: "center", justifyContent: "center", color: "white", margin: "0 auto" }}>
                             {/* placeholder QR - in a real app replace with merchant QR image/data */}
                             <div style={{ textAlign: "center" }}>
-                                <img style={{ width: 180, height: 180 }} src="/public/MyQR.jpeg" alt="QR Code"></img>
+                                <img style={{ width: 180, height: 180 }} src="/MyQR.jpeg" alt="QR Code"></img>
                             </div>
                         </div>
                         <div style={{ marginTop: 10, textAlign: "center" }}>

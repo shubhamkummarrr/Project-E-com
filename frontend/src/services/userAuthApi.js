@@ -157,7 +157,16 @@ export const userAuthApi = createApi({
         },
       }),
     }),
-
+    UserPutDetails: builder.mutation({
+      query: ({ access_token, data, id }) => ({
+        url: `user/user-details/${id}/`, // include id if required
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+        body: data,
+      }),
+    }),
     // ---------------------- PRODUCT CRUD ----------------------
     getProducts: builder.query({
       query: ({ search, ordering } = {}) => {
@@ -170,9 +179,9 @@ export const userAuthApi = createApi({
       providesTags: (result = []) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: "Product", id })),
-              { type: "Product", id: "LIST" },
-            ]
+            ...result.map(({ id }) => ({ type: "Product", id })),
+            { type: "Product", id: "LIST" },
+          ]
           : [{ type: "Product", id: "LIST" }],
     }),
 
@@ -224,6 +233,7 @@ export const {
   useContactUsMutation,
   useUserDetailsMutation,
   useUserGetDetailsQuery,
+  useUserPutDetailsMutation,
   // Product
   useGetProductsQuery,
   useGetProductQuery,

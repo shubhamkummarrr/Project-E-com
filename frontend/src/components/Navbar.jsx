@@ -142,7 +142,7 @@ const Navbar = () => {
             }
 
             <Button onClick={() => setCartOpen(o => !o)} style={{ position: "relative" }}>
-              <img src="/public/grocery.gif" style={{ height: "40px" }} />
+              <img src="/grocery.gif" style={{ height: "40px" }} />
               <span style={{
                 position: "absolute",
                 top: -5,

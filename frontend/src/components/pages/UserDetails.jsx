@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { useUserDetailsMutation } from '../../services/userAuthApi';
-import { useNavigate } from 'react-router-dom';
-
+import React, { useState, useEffect } from 'react';
+import { useUserDetailsMutation, useUserGetDetailsQuery, useUserPutDetailsMutation } from '../../services/userAuthApi';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { setAddress } from '../../features/addressSlice';
+import { useDispatch } from 'react-redux';
+import { getToken } from '../../services/LocalStorageService';
 
 const states = [
     'Maharashtra', 'Karnataka', 'Delhi', 'Kerala', 'Punjab', 'Gujarat', 'TamilNadu', 'Rajasthan', 'WestBengal'
@@ -17,22 +19,71 @@ const UserDetails = () => {
         pincode: ''
     });
 
+    const { access_token } = getToken();
+
+    const { data: getUserDetails } = useUserGetDetailsQuery(access_token);
+
+
+    const dispatch = useDispatch();
+
     const navigate = useNavigate();
 
     const [userDetails] = useUserDetailsMutation();
+    const [putDetails] = useUserPutDetailsMutation(access_token);
+    const location = useLocation();
+    const isEdit = !!location.state?.details;
+
+    useEffect(() => {
+        if (isEdit && Array.isArray(getUserDetails) && getUserDetails.length > 0) {
+            const d = getUserDetails[0];
+
+            setForm({
+                user_full_name: d.user_full_name || "",
+                mobile_number: d.mobile_number || "",
+                address_line: d.address_line || "",
+                city: d.city || "",
+                state: d.state || states[0],
+                pincode: d.pincode || "",
+            });
+        }
+    }, [isEdit, getUserDetails]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((f) => ({ ...f, [name]: value }));
+        setForm((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        userDetails(form);
-        alert('User details saved');
-        navigate("/buyproducts");
+        try {
+            if (isEdit) {
+                const res = await putDetails({
+                    access_token,
+                    data: form,
+                    id: getUserDetails?.[0]?.id,
+                }).unwrap();
+
+                dispatch(setAddress(res)); // use backend response
+                alert("User details updated");
+                navigate("/profile");
+                window.location.reload();
+
+            } else {
+                const res = await userDetails(form).unwrap();
+
+                dispatch(setAddress(res));
+                alert("User details saved");
+                navigate("/buyproducts");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save details");
+        }
     };
+
+
+
 
     return (
         <div style={{ maxWidth: 720, margin: '24px auto', padding: 20, border: '1px solid #eee', borderRadius: 8 }}>
