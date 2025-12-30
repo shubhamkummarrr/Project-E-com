@@ -111,4 +111,30 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Product
         fields = '__all__'
+        
+class UserDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDetails
+        fields = [
+            "id",
+            "user_full_name",
+            "mobile_number",
+            "address_line",
+            "city",
+            "state",
+            "pincode",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+     
+class PurchaseHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = PurchaseHistory
+        fields = '__all__'
+        
+class ContactMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = ContactMessage
+        fields = '__all__'
 

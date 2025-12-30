@@ -15,6 +15,7 @@ from django.conf import settings
 import os
 import numpy as np
 from ecom.recommender.recommender import recommend_products
+from rest_framework.permissions import AllowAny
 
 
 
@@ -80,6 +81,78 @@ class UserPasswordResetView(APIView):
     serializer = UserPasswordResetSerializer(data=request.data, context={'uid':uid, 'token':token})
     serializer.is_valid(raise_exception=True)
     return Response({'msg':'Password Reset Successfully'}, status=status.HTTP_200_OK)
+
+class UserDetailViewSet(viewsets.ModelViewSet):
+    serializer_class = UserDetailsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserDetails.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            print("❌ SERIALIZER ERRORS:", serializer.errors)
+            return Response(serializer.errors, status=400)
+
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=201)
+
+class ContactMessageView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """
+        Save contact message
+        Logged-in user → attach user
+        Guest → save name & email only
+        """
+        data = request.data.copy()
+
+        if request.user.is_authenticated:
+            data["user"] = request.user.id
+            data["email"] = request.user.email
+
+        serializer = ContactMessageSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Message sent successfully"},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class PurchaseHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        Save purchase history
+        Frontend sends products JSON
+        """
+        serializer = PurchaseHistorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(
+                {"message": "Purchase saved successfully"},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        """
+        Get purchase history of logged-in user
+        """
+        history = PurchaseHistory.objects.filter(
+            user=request.user
+        ).order_by("-created_at")
+
+        serializer = PurchaseHistorySerializer(history, many=True)
+        return Response(serializer.data)
+
 
 
 class ProductViewSet(viewsets.ModelViewSet):

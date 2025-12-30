@@ -12,6 +12,10 @@ import ProductCreate from "./components/ProductCreate";
 import ProductEdit from "./components/ProductEdit";
 import ProtectedRoute from "./components/ProtectedRoute"; // ✅ new import
 import ProductPage from "./components/ProductPage";
+import UserDetails from "./components/pages/UserDetails";
+import BuyProducts from "./components/pages/BuyProducts";
+import ProtectedBuyRoute from "./components/pages/auth/ProtectedBuyRoute";
+
 
 function App() {
   const { access_token } = useSelector((state) => state.auth);
@@ -33,8 +37,19 @@ function App() {
 
             {/* These can stay open or protected later */}
             <Route path="products/new" element={<ProductCreate />} />
+            <Route path="userdetails" element={<UserDetails />} />
+            <Route path="buyproducts" element={<BuyProducts />} />
             <Route path="productpage/:id" element={<ProductPage />} />
             <Route path="products/:id/edit" element={<ProductEdit />} />
+            // In App.js, update the BuyProducts route
+            <Route
+              path="buyproducts"
+              element={
+                <ProtectedBuyRoute>
+                  <BuyProducts />
+                </ProtectedBuyRoute>
+              }
+            />
 
             <Route path="contact" element={<Contact />} />
             <Route

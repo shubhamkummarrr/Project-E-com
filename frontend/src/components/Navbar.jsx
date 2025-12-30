@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { AppBar, Box, Toolbar, Typography, Button, Container } from '@mui/material';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { getToken } from '../services/LocalStorageService';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import { useDispatch, useSelector } from 'react-redux';
-import { removeFromCart } from '../features/cartSlice';
+import { addToCart, removeFromCart } from '../features/cartSlice';
 
 
 
@@ -13,6 +13,12 @@ const Navbar = () => {
   const [cartOpen, setCartOpen] = useState(false)
   const cartItems = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleBuy = () => {
+    navigate('/buyproducts')
+    setCartOpen(false);
+  };
 
   return (
     <AppBar position="sticky" sx={{
@@ -161,7 +167,10 @@ const Navbar = () => {
                 boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                 borderRadius: 8,
                 zIndex: 1400,
-                padding: 12
+                padding: 12,
+                height: "60vh",
+                overflowY: 'auto'
+
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <strong>Your Cart</strong>
@@ -174,7 +183,7 @@ const Navbar = () => {
                   )}
 
                   {cartItems.map(p => (
-                    <div key={p.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 0',color:"black" , borderBottom: '1px solid #eee' }}>
+                    <div key={p.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 0', color: "black", borderBottom: '1px solid #eee' }}>
                       <img
                         src={p.img_link}
                         alt={p.product_name}
@@ -194,18 +203,31 @@ const Navbar = () => {
                         </div>
                         <div style={{ fontSize: 13, color: '#666' }}>₹{(Number(p.discounted_price) || 0).toFixed(2)}</div>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap:3 }}>
                         <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>x{p.qty || 1}</div>
-                        <Button size="small" variant="outlined">Add</Button>
-                        <Button size="small" variant="outlined" style={{color:"red", border:"1px solid red"}} onClick={() => dispatch(removeFromCart(p.id))}>-</Button>
+                        <Button size="small" variant="outlined" style={{ color: "#34ce51", border: "2px solid #34ce51" }} onClick={() => dispatch(addToCart(p))}>+</Button>
+                        <Button size="small" variant="outlined" style={{ color: "red", border: "1px solid red" }} onClick={() => dispatch(removeFromCart(p.id))}>-</Button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color:"black"}}>
+                <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: "black" }}>
                   <div style={{ fontWeight: 700 }}>Subtotal</div>
                   <div style={{ fontWeight: 700 }}>{cartItems.reduce((s, p) => s + (Number(p.discounted_price) || 0) * (p.qty || 1), 0).toFixed(2)}</div>
+                </div>
+                <div>
+                  <button onClick={handleBuy} style={{
+                    marginTop: 12,
+                    width: '40%',
+                    padding: '10px 0',
+                    backgroundColor: '#389544',
+                    color: 'white',
+                    border: '2px solid #389544',
+                    borderRadius: 6,
+                  }}>
+                    Buy Now
+                  </button>
                 </div>
               </div>
             )}

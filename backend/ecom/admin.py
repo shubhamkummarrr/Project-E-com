@@ -29,3 +29,6 @@ class UserModelAdmin(BaseUserAdmin):
 
 # Now register the new UserModelAdmin...
 admin.site.register(User, UserModelAdmin)
+admin.site.register(UserDetails)
+admin.site.register(PurchaseHistory)
+admin.site.register(ContactMessage)

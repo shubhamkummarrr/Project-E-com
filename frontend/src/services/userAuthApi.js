@@ -1,10 +1,11 @@
 // src/services/api.js
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setUserToken, unSetUserToken } from "../features/authSlice";
+import UserDetails from "../components/pages/UserDetails";
 
 // ✅ Base query with automatic token attach
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://127.0.0.1:8000/api/",
+  baseUrl: "http://16.170.39.24:8000/api/",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("access_token");
     if (token) {
@@ -133,6 +134,29 @@ export const userAuthApi = createApi({
         method: "GET",
       }),
     }),
+    ContactUs: builder.mutation({
+      query: (data) => ({
+        url: `user/contact/`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    UserDetails: builder.mutation({
+      query: (data) => ({
+        url: `user/user-details/`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    UserGetDetails: builder.query({
+      query: (access_token) => ({
+        url: `user/user-details/`,
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }),
+    }),
 
     // ---------------------- PRODUCT CRUD ----------------------
     getProducts: builder.query({
@@ -197,6 +221,9 @@ export const {
   useProductCardQuery,
   useProductPageQuery,
   useRecommendProductQuery,
+  useContactUsMutation,
+  useUserDetailsMutation,
+  useUserGetDetailsQuery,
   // Product
   useGetProductsQuery,
   useGetProductQuery,

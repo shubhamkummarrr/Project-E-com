@@ -1,5 +1,7 @@
 import { Box, Button, Grid, TextField, Typography } from "@mui/material";
 import { useState } from "react";
+import { useContactUsMutation } from "../../services/userAuthApi";
+
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -8,18 +10,23 @@ const Contact = () => {
     message: ''
   });
 
+  const [contactUs] = useContactUsMutation();
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle form submission here
     console.log('Form submitted:', formData);
-  };
-
-  const handleChange = (e) => {
+    contactUs(formData);
+    // Reset form
     setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+      name: '',
+      email: '',
+      message: ''
     });
   };
+
+  
+
 
   return <>
     <Grid container justifyContent='center' sx={{ p: 3 }}>
@@ -36,7 +43,7 @@ const Contact = () => {
           <Typography variant="body1" sx={{ mb: 4, textAlign: 'center', color: 'text.secondary' }}>
             Have a question or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
           </Typography>
-          
+
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
               margin="normal"
@@ -47,7 +54,9 @@ const Contact = () => {
               name="name"
               autoComplete="name"
               value={formData.name}
-              onChange={handleChange}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               sx={{ mb: 2 }}
             />
             <TextField
@@ -59,7 +68,10 @@ const Contact = () => {
               name="email"
               autoComplete="email"
               value={formData.email}
-              onChange={handleChange}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+
               sx={{ mb: 2 }}
             />
             <TextField
@@ -71,7 +83,10 @@ const Contact = () => {
               multiline
               rows={4}
               value={formData.message}
-              onChange={handleChange}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
+
               sx={{ mb: 3 }}
             />
             <Button
