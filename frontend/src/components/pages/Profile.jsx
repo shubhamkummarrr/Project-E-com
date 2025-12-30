@@ -43,7 +43,6 @@ const Profile = () => {
 
   const { data, isSuccess } = useGetLoggedUserQuery(access_token);
   const { data: userDetails } = useUserGetDetailsQuery(access_token);
-  // const [putDetails] = useUserPutDetailsQuery(access_token);
 
   const details = userDetails?.[0]; // ✅ backend returns array
 
